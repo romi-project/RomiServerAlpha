@@ -17,14 +17,36 @@
 
 #include <iostream>
 #include <string>
-#include <netinet/in.h>
-#include <sys/event.h>
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstdarg>
+#include <utility>
 #include <cstdio>
-#include <arpa/inet.h>
+#include <cstdint>
+
+#if defined(_WIN32) || defined(_WIN64)
+
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+# endif
+
+# include <windows.h>
+# include <winsock2.h>
+
+typedef SOCKET rmSocket;
+typedef HANDLE rmHandle;
+
+#else
+
+# include <netinet/in.h>
+# include <sys/event.h>
+# include <sys/socket.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <arpa/inet.h>
+
+typedef int rmSocket;
+typedef int rmHandle;
+
+#endif
+
 
 void    Hello();
 

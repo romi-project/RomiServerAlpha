@@ -45,5 +45,7 @@ _deps
 
 build/
 bin/
+out/
 
 .vscode/
+.vs/

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.19)
 
 add_executable(romisvr
     main.cpp
@@ -7,5 +7,5 @@ add_executable(romisvr
 
 target_include_directories(romisvr
 PUBLIC
-    ${CMAKE_BINARY_DIR}/includes
+    ${CMAKE_SOURCE_DIR}/includes
 )
