@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smun <smun@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: smun <smun@student.42seoul.kr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/12 18:08:37 by smun              #+#    #+#             */
-/*   Updated: 2022/02/12 21:47:20 by smun             ###   ########.fr       */
+/*   Updated: 2022/02/17 13:20:33 by smun             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static int error(const char* format, ...)
 
 static int set_nonblock(int fd)
 {
-    int flags = fcntl(fd, F_GETFL, 0);
+    int flags = ::fcntl(fd, F_GETFL, 0);
     if (flags < 0)
         return error("fcntl get flags error (%s)\n", strerror(errno));
     int setfcntlres = fcntl(fd, F_SETFL, flags, O_NONBLOCK);
@@ -37,7 +37,7 @@ static int set_event(int eventfd, int fd, int filter, int events)
 {
     kevent64_s env;
     EV_SET64(&env, fd, filter, events, 0, 0, static_cast<uint64_t>(fd), 0, 0);
-    int evregist = kevent64(eventfd, &env, 1, nullptr, 0, 0, nullptr);
+    int evregist = ::kevent64(eventfd, &env, 1, nullptr, 0, 0, nullptr);
     if (evregist < 0)
         return error("register kevent64 error (%s)\n", strerror(errno));
     return 0;

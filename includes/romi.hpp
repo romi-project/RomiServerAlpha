@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   romi.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smun <smun@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: smun <smun@student.42seoul.kr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/12 18:06:24 by smun              #+#    #+#             */
-/*   Updated: 2022/02/12 21:27:12 by smun             ###   ########.fr       */
+/*   Updated: 2022/02/17 13:50:53 by smun             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,6 @@
 # include <windows.h>
 # include <winsock2.h>
 
-typedef SOCKET rmSocket;
-typedef HANDLE rmHandle;
-
 #else
 
 # include <netinet/in.h>
@@ -42,12 +39,6 @@ typedef HANDLE rmHandle;
 # include <unistd.h>
 # include <arpa/inet.h>
 
-typedef int rmSocket;
-typedef int rmHandle;
-
 #endif
-
-
-void    Hello();
 
 #endif // ROMI_HPP
