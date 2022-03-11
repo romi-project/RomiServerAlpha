@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 
 add_executable(romisvr
-    main.cpp
-    romi.cpp
-)
+ romi.cpp
+ "win.cpp")
+
+ add_subdirectory(error)
 
 target_include_directories(romisvr
 PUBLIC

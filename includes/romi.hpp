@@ -30,8 +30,8 @@
 # include <windows.h>
 # include <winsock2.h>
 
-typedef SOCKET rmSocket;
-typedef HANDLE rmHandle;
+typedef SOCKET RSocket;
+typedef HANDLE RHandle;
 
 #else
 
@@ -42,8 +42,8 @@ typedef HANDLE rmHandle;
 # include <unistd.h>
 # include <arpa/inet.h>
 
-typedef int rmSocket;
-typedef int rmHandle;
+typedef int RSocket;
+typedef int RHandle;
 
 #endif
 
