@@ -1,0 +1,26 @@
+// The Romi Project
+//
+// @ File   :  
+// @ Author :  Tensiya(T2SU)
+// @ Since  :  $time$
+//
+
+#pragma once
+
+class 
+{
+private:
+
+public:
+    () = default;
+    virtual () = default;
+    (const $safeitemname$&) = default;
+    ($safeitemname$&&) = default;
+    & operator= (const $safeitemname$&) = default;
+    & operator= ($safeitemname$&&) = default;
+
+protected:
+
+private:
+
+};

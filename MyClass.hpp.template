@@ -1,0 +1,27 @@
+// The Romi Project
+//
+// @ File   :  $filename$.hpp
+// @ Author :  Tensiya(T2SU)
+// @ Email  :  tsi@romi-project.net
+// @ Since  :  $time$
+//
+
+#pragma once
+
+class $classname$
+{
+private:
+
+public:
+    $classname$() = default;
+    virtual ~$classname$() = default;
+    $classname$(const $classname$&) = default;
+    $classname$($classname$&&) = default;
+    $classname$& operator= (const $classname$&) = default;
+    $classname$& operator= ($classname$&&) = default;
+
+protected:
+
+private:
+
+};

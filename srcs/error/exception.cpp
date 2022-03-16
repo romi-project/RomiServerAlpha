@@ -6,14 +6,29 @@
 // @ Last Modified      :  Tensiya(T2SU)
 // @ Last Modified time :  2022-03-11 14:51:43
 //
-#include "exception.hpp"
 
-RException::RException(std::string mes)
+#include "error/exception.hpp"
+#include "error/errorutils.hpp"
+
+RException::RException(const std::string& mes)
     : _mes(mes)
 {
 }
 
-const std::string& RException::GetMessage() const noexcept
+std::string RException::MakeMessage(const std::string& msg, const int err)
 {
-    return _mes;
+    return ErrorUtils::GetString(err);
+}
+
+std::string RException::MakeMessage(const std::string& msg, const int err)
+{
+    std::string ret;
+
+    ret += msg;
+
+    ret += " (";
+    ret += std::to_string(err);
+    ret += ")";
+
+    return ret;
 }

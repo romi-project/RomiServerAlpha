@@ -15,3 +15,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_subdirectory(srcs)
+
+add_subdirectory(plog)
+target_include_directories(romisvr
+	PUBLIC plog/include
+)
+target_link_libraries(romisvr PUBLIC plog)
+
+# ${CMAKE_SOURCE_DIR}/

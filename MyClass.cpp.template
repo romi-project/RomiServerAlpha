@@ -1,0 +1,33 @@
+// The Romi Project
+//
+// @ File   :  $filename$.cpp
+// @ Author :  Tensiya(T2SU)
+// @ Email  :  tsi@romi-project.net
+// @ Since  :  $time$
+//
+
+#include "$filename$.hpp"
+
+$classname$::$classname$()
+{
+}
+
+$classname$::~$classname$()
+{
+}
+
+$classname$::$classname$(const $classname$& o)
+{
+}
+
+$classname$::$classname$($classname$&& o)
+{
+}
+
+$classname$& $classname$::operator= (const $classname$& o)
+{
+}
+
+$classname$& $classname$::operator= ($classname$&& o)
+{
+}

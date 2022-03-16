@@ -1,0 +1,32 @@
+// The Romi Project
+//
+// @ File   :  
+// @ Author :  Tensiya(T2SU)
+// @ Since  :  $time$
+//
+
+#include ".hpp"
+
+::$safeitemname$()
+{
+}
+
+::~$safeitemname$()
+{
+}
+
+::$safeitemname$(const $safeitemname$& o)
+{
+}
+
+::$safeitemname$($safeitemname$&& o)
+{
+}
+
+& operator= (const $safeitemname$& o)
+{
+}
+
+& operator= ($safeitemname$&& o)
+{
+}
