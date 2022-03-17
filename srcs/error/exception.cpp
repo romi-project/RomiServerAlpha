@@ -15,7 +15,7 @@ RException::RException(const std::string& mes)
 {
 }
 
-std::string RException::MakeMessage(const std::string& msg, const int err)
+std::string RException::MakeMessage(const int err)
 {
     return ErrorUtils::GetString(err);
 }

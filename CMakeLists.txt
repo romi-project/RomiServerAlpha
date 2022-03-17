@@ -6,10 +6,10 @@ if(MSVC)
   string (REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
   add_compile_options(/W4 /WX /fsanitize=address /Z7)
 else()
-  add_compile_options(-Wall -Werror -Wextra -fsanitize=address -g)
+  add_compile_options(-Wall -Werror -Wextra -g)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

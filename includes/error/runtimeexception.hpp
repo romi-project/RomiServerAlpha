@@ -1,3 +1,10 @@
+// The Romi Project
+//
+// @ File   :  runtimeexception.hpp
+// @ Author :  Tensiya(T2SU)
+// @ Email  :  tsi@romi-project.net
+// @ Since  :  2022-03-17 15:56:02
+//
 
 #pragma once
 

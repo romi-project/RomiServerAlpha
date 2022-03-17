@@ -34,8 +34,8 @@ public:
 	inline const std::string& GetMessage() const noexcept { return _mes; }
 
 protected:
-	std::string MakeMessage(const std::string& msg, const int err);
-	std::string MakeMessage(const int err);
+	static std::string MakeMessage(const std::string& msg, const int err);
+	static std::string MakeMessage(const int err);
 };
 
 #if _ROMI_WINDOWS

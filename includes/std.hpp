@@ -11,9 +11,13 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <type_traits>
+#include <algorithm>
+#include <mutex>
 #include <cstdio>
 #include <cstdint>
 #include <plog/Log.h>
@@ -45,7 +49,7 @@ typedef DWORD   RomiDword;
 #define THREAD_ROUTINE_RETURN 0
 
 constexpr RomiRawSocket RomiInvalidSocket = INVALID_SOCKET;
-constexpr RomiRawHandle RomiInvaliHandle = INVALID_HANDLE_VALUE;
+constexpr RomiRawHandle RomiInvalidHandle = INVALID_HANDLE_VALUE;
 inline void Close(RomiRawSocket socket) { closesocket(socket); }
 
 #else
@@ -69,9 +73,7 @@ typedef int     RomiDword;
 #define THREAD_ROUTINE_RETURN
 
 constexpr RomiRawSocket RomiInvalidSocket = -1;
-constexpr RomiRawHandle RomiInvaliHandle = -1;
+constexpr RomiRawHandle RomiInvalidHandle = -1;
 inline void Close(RomiRawSocket socket) { close(socket); }
 
 #endif
-
-void    Hello();

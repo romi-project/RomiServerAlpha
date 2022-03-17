@@ -1,18 +1,12 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   romi.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: smun <smun@student.42.fr>                  +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/02/12 18:08:07 by smun              #+#    #+#             */
-/*   Updated: 2022/02/12 18:08:44 by smun             ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "std.hpp"
 
-void    Hello()
+int main()
 {
-    std::cout << "Hello World~" << std::endl;
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+
+    plog::init(plog::debug, &consoleAppender);
+
+    LOGD << "Hello world";
+
+    return 0;
 }
