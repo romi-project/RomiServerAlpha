@@ -45,8 +45,6 @@ static int set_event(int eventfd, int fd, int filter, int events)
 
 int main()
 {
-    Hello();
-
     // make kqueue
     int eventfd = ::kqueue();
     if (eventfd < 0)

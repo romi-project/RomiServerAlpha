@@ -35,7 +35,7 @@ public:
     RSocketClient& operator= (RSocketClient&&) = delete;
 
     virtual void OnConnect() = 0;
-    virtual void OnSend();
+    virtual void OnSend(const char* buffer, size_t len);
     virtual void OnReceive();
     virtual void OnClose();
 

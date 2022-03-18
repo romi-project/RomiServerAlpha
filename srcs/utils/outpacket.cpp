@@ -33,16 +33,17 @@ void    OutPacket::WriteStr(const std::string& str)
 
 void    OutPacket::Write(const void* buffer, size_t offset, size_t len)
 {
-    const char* cbuffer = reinterpret_cast<const char*>(buffer);
+    const char* const cbuffer = reinterpret_cast<const char*>(buffer);
 
+    _buffer.reserve(_buffer.size() + len);
     std::memcpy(Current(), &cbuffer[offset], len);
 }
 
 const std::string OutPacket::DumpPacket() const
 {
-    std::stringstream   ss;
     size_t              size = GetBufferSize();
     const char*         buf = GetBuffer();
+    std::stringstream   ss;
 
     while (size-- != 0)
     {

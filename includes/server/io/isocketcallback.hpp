@@ -15,16 +15,11 @@
 
 #pragma once
 
+#include "std.hpp"
+
 class RISocketCallback
 {
 public:
-    RISocketCallback() = default;
-    virtual ~RISocketCallback() = default;
-    RISocketCallback(const RISocketCallback&) = default;
-    RISocketCallback(RISocketCallback&&) = default;
-    RISocketCallback& operator= (const RISocketCallback&) = default;
-    RISocketCallback& operator= (RISocketCallback&&) = default;
-
-    virtual void OnSend() = 0;
-    virtual void OnReceive() = 0;
+    virtual void    OnSend() = 0;
+    virtual void    OnReceive(const char* buffer, size_t len) = 0;
 };

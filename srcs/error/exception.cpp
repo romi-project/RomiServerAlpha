@@ -8,7 +8,7 @@
 //
 
 #include "error/exception.hpp"
-#include "error/errorutils.hpp"
+#include "utils/errorutils.hpp"
 
 RException::RException(const std::string& mes)
     : _mes(mes)

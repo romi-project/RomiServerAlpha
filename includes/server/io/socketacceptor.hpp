@@ -23,11 +23,14 @@
 #pragma once
 
 #include "std.hpp"
+#include "isocketacceptorcallback.hpp"
+#include "error/socketexception.hpp"
+#include "error/invalidoperationexception.hpp"
 
 class RSocketClient;
 
-template<typename T>
-class RSocketAcceptor
+template<typename T, typename std::enable_if_t<std::is_convertible<T, RSocketClient>::value, RSocketClient*>* = nullptr>
+class RSocketAcceptor : public RISocketAcceptorCallback
 {
 private:
     std::string         _host;
@@ -42,8 +45,7 @@ public:
 
     RSocketAcceptor(
         const std::string& host,
-        const std::string& port,
-        std::enable_if<std::is_convertible<T, RSocketClient>::value, RSocketClient*>::type* = 0)
+        const std::string& port)
         : _listenSocket(RomiInvalidSocket)
         , _host(host)
         , _port(port)
@@ -59,7 +61,12 @@ public:
     RSocketAcceptor(RSocketAcceptor&&) = default;
     RSocketAcceptor& operator= (RSocketAcceptor&&) = default;
 
-    void Shutdown()
+    virtual void    OnAccept(RomiRawSocket socket, const std::string& remoteAddress)
+    {
+        SetSocketOpt(socket);
+    }
+
+    void    Shutdown()
     {
         if (_isAlive.compare_exchange_strong(false, true))
             return;
@@ -68,6 +75,8 @@ public:
         // close listen socket
         LOGD << "SocketAcceptor[" << _host << ":" << _port << "] has been closed.";
     }
+
+protected:
 
 private:
 };
