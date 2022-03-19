@@ -8,11 +8,12 @@
 
 #include "std.hpp"
 #include "utils/outpacket.hpp"
+#include "utils/netutils.hpp"
 
 OutPacket::OutPacket(size_t size)
     : _buffer(size)
 {
-    LOGD << "Created " << size << " sized OutPacket.";
+    LOGV << "Created " << size << " sized OutPacket.";
 }
 
 const char* OutPacket::GetBuffer() const
@@ -41,16 +42,5 @@ void    OutPacket::Write(const void* buffer, size_t offset, size_t len)
 
 const std::string OutPacket::DumpPacket() const
 {
-    size_t              size = GetBufferSize();
-    const char*         buf = GetBuffer();
-    std::stringstream   ss;
-
-    while (size-- != 0)
-    {
-        ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << *(buf++);
-        if (size == 0)
-            break;
-        ss << ' ';
-    }
-    return ss.str();
+    return NetUtils::DumpMemory(GetBuffer(), GetBufferSize());
 }

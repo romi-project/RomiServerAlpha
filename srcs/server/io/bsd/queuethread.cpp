@@ -28,9 +28,9 @@ RQueueThread::~RQueueThread()
 }
 
 // kqueue에 accept되어온 소켓 등록
-void    RQueueThread::RegisterSocket(RomiRawSocket socketfd)
+void    RQueueThread::RegisterSocket(RomiRawSocket socketfd, RQueueContext& context)
 {
-
+    SetEvent(socketfd, context, kevent_Read, false);
 }
 
 // kqueue에 액셉터 등록
@@ -43,18 +43,18 @@ void    RQueueThread::RegisterAcceptor(RomiRawSocket listenfd, RQueueContext& co
     LOGD << "Registered AcceptorSocket [" << listenfd << "] to RQueueThread-" << _num << ".";
 }
 
-void    RQueueThread::SetEvent(RomiRawSocket socketfd, RQueueContext& context, int events, bool mod)
+void    RQueueThread::SetEvent(RomiRawSocket socketfd, RQueueContext& context, int events, bool remove)
 {
     kevent64_s  ev[2];
     int         eventNum = 0;
 
     if (events & kevent_Read)
         EV_SET64(&ev[eventNum++], socketfd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
-    else if (mod)
+    else if (remove)
         EV_SET64(&ev[eventNum++], socketfd, EVFILT_READ, EV_DELETE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
     if (events & kevent_Write)
         EV_SET64(&ev[eventNum++], socketfd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
-    else if (mod)
+    else if (remove)
         EV_SET64(&ev[eventNum++], socketfd, EVFILT_WRITE, EV_DELETE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
     int evregist = kevent64(_eventfd, ev, eventNum, nullptr, 0, 0, nullptr);
     if (evregist < 0)
@@ -123,8 +123,6 @@ void    RQueueThread::DoRead(int socketfd, RQueueContext& context)
         context.Callback->OnReceive(buf, static_cast<size_t>(n));
     }
     LOGD << "Socket closed from " << NetUtils::GetPeerName(socketfd);
-    shutdown(socketfd, SHUT_RDWR);
-    close(socketfd);
     context.Callback->OnReceive(nullptr, 0);
 }
 
@@ -160,15 +158,28 @@ THREAD_ROTUINE RQueueThread::Run(RomiVoidPtr selfPtr)
             // write
             else if (filter == EVFILT_WRITE)
             {
-                if (set_event(eventfd, socketfd, EVFILT_WRITE, EV_DELETE) != 0)
-                    return 1;
+                $this->DoSend(context);
+                $this->SetEvent(socketfd, context, kevent_Write, true);
             }
-            else
-                return error("invalid event (%d)\n", filter);
         }
         NEXT_LOOP:
         continue;
     }
 
     return THREAD_ROUTINE_RETURN;
+}
+
+void    RQueueThread::DoSend(RQueueContext& context)
+{
+    context.Callback->OnSend();
+}
+
+ssize_t RQueueThread::Write(RomiRawSocket socket, const char* buf, size_t len)
+{
+
+}
+
+void    RQueueThread::EnableSend(RQueueContext& context)
+{
+    SetEvent(context.Socket, context, kevent_Write, false);
 }

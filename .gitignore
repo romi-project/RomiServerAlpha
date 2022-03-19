@@ -49,3 +49,5 @@ out/
 
 .vscode/
 .vs/
+
+.DS_Store

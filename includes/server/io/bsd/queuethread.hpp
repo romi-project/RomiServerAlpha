@@ -9,11 +9,11 @@
 #pragma once
 
 #include "std.hpp"
+#include "isocketport.hpp"
 
-class RISocketAcceptorCallback;
 struct RQueueContext;
 
-class RQueueThread
+class RQueueThread : public RISocketPort
 {
 private:
     enum { kevent_Read = 1 << 0, kevent_Write = 1 << 1 };
@@ -38,17 +38,21 @@ public:
     RQueueThread(int num);
     virtual ~RQueueThread();
 
-    void    RegisterSocket(RomiRawSocket socketfd);
+    void    RegisterSocket(RomiRawSocket socketfd, RQueueContext& context);
     void    RegisterAcceptor(RomiRawSocket listenfd, RQueueContext& context);
+
+    ssize_t Write(RomiRawSocket socket, const char* buf, size_t len);
+    void    EnableSend(RQueueContext& context);
 
     static THREAD_ROTUINE Run(RomiVoidPtr selfPtr);
 
 protected:
 
 private:
-    void    SetEvent(RomiRawSocket socketfd, RQueueContext& context, int events, bool mod);
+    void    SetEvent(RomiRawSocket socketfd, RQueueContext& context, int events, bool remove);
     void    SetSocketOpt(RomiRawSocket socketfd);
     void    DoAccept(int socketfd, RQueueContext& context);
     void    DoRead(int socketfd, RQueueContext& context);
+    void    DoSend(RQueueContext& context);
 
 };

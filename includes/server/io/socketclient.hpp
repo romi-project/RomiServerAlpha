@@ -18,34 +18,57 @@
 #pragma once
 
 #include "std.hpp"
-#include "server/io/isocketcallback.hpp"
+#include "bsd/queuecontext.hpp"
+#include "isocketcallback.hpp"
+#include "utils/inpacket.hpp"
+#include "utils/outpacket.hpp"
+
+class RISocketPort;
 
 class RSocketClient : public RISocketCallback
 {
 private:
-    RomiRawSocket _socket;
+    enum class AssembleMode { Header, Content };
+    const size_t            HEADER_SIZE = 6;
+
+    RomiRawSocket           _socket;
+    const std::string       _remoteAddress;
+    InPacket                _inPacket;
+    std::queue<OutPacket>   _writePackets;
+    bool                    _overlappedSend;
+    AssembleMode            _assembleMode;
+    RISocketPort*           _socketPort;
+    RQueueContext           _context;
+    std::atomic<bool>       _shouldClose;
 
 public:
-    RSocketClient();
+    RSocketClient(RomiRawSocket socket, const std::string& remoteAddress, RISocketPort* socketPort);
     virtual ~RSocketClient();
 
+    RSocketClient(RSocketClient&& o);
     RSocketClient(const RSocketClient&) = delete;
-    RSocketClient(RSocketClient&&) = delete;
     RSocketClient& operator= (const RSocketClient&) = delete;
     RSocketClient& operator= (RSocketClient&&) = delete;
 
+    const RQueueContext&  GetContext() const;
+
+    void    SendPacket(const OutPacket& outPacket);
+    void    TriggerSocketQueue();
+
     virtual void OnConnect() = 0;
-    virtual void OnSend(const char* buffer, size_t len);
-    virtual void OnReceive();
+    virtual void OnSend();
+    virtual void OnReceive(const char* buffer, size_t len);
     virtual void OnClose();
 
-    virtual void ProcessPacket() = 0;
+    virtual void ProcessPacket(const InPacket& inPacket) = 0;
 
-    void SendPacket();
-    void Close();
 
 protected:
 
 private:
+    void    AssemblePacket();
+    static uint16_t    CalculateHash(const char* buffer, size_t len);
+
+    void    DoClose();
 
 };

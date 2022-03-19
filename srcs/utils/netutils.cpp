@@ -38,3 +38,18 @@ const std::string    NetUtils::GetPeerName(RomiRawSocket socket)
     }
     return ConvertAddressToString(addr.sin_family, &addr.sin_addr);
 }
+
+const std::string    NetUtils::DumpMemory(const void* buffer, size_t len)
+{
+    const char*         buf = reinterpret_cast<const char*>(buffer);
+    std::stringstream   ss;
+
+    while (len-- != 0)
+    {
+        ss << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << *(buf++);
+        if (len == 0)
+            break;
+        ss << ' ';
+    }
+    return ss.str();
+}

@@ -24,6 +24,8 @@
 
 #include "std.hpp"
 #include "isocketacceptorcallback.hpp"
+#include "isocketport.hpp"
+#include "bsd/queuecontext.hpp"
 #include "error/socketexception.hpp"
 #include "error/invalidoperationexception.hpp"
 
@@ -61,9 +63,11 @@ public:
     RSocketAcceptor(RSocketAcceptor&&) = default;
     RSocketAcceptor& operator= (RSocketAcceptor&&) = default;
 
-    virtual void    OnAccept(RomiRawSocket socket, const std::string& remoteAddress)
+    virtual void    OnAccept(RomiRawSocket socket, const std::string& remoteAddress, RISocketPort& socketPort)
     {
         SetSocketOpt(socket);
+        std::shared_ptr<T> newSocket(T(socket, remoteAddress));
+        socketPort.RegisterSocket(socket, context);
     }
 
     void    Shutdown()

@@ -16,6 +16,7 @@ class InPacket
 private:
     std::vector<char>   _buffer;
     size_t              _offset;
+    size_t              _virtualSize;
 
 public:
     InPacket();
@@ -28,7 +29,7 @@ public:
     template<typename T>
     const T&  Read()
     {
-        if (_offset + sizeof(T) >= .size())
+        if (_offset + sizeof(T) >= GetSize())
             RaiseEofError();
         const auto& ret = *reinterpret_cast<const T*>(&_buffer[_offset]);
         _offset += sizeof(T);
@@ -39,6 +40,10 @@ public:
     const std::string   DumpPacket() const;
     const std::string   ReadStr();
     void                Read(void* dst, size_t len);
+    void                SetVirtualSize(size_t virtualSize);
+    size_t              GetVirtualSize() const;
+    size_t              GetBufferSize() const;
+    void                PullUsedPacket(size_t size);
 
 protected:
 

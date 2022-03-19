@@ -22,4 +22,5 @@ public:
 
     static const std::string    ConvertAddressToString(int af, const void* addr);
     static const std::string    GetPeerName(int fd);
+    static const std::string    DumpMemory(const void* buffer, size_t len);
 };
