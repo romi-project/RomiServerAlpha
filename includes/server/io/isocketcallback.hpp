@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "std.hpp"
+#include "defines.hpp"
 
 class RISocketCallback
 {

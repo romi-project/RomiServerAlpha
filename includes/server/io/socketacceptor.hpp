@@ -22,7 +22,10 @@
 
 #pragma once
 
-#include "std.hpp"
+#include <type_traits>
+#include <atomic>
+#include <memory>
+#include "defines.hpp"
 #include "isocketacceptorcallback.hpp"
 #include "isocketport.hpp"
 #include "bsd/queuecontext.hpp"

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-add_executable(romisvr
+add_executable(${PROJECT_NAME}
 	"romi.cpp"
 	"error/errorutils.cpp"
 	"error/exception.cpp"
@@ -14,17 +14,19 @@ add_executable(romisvr
 )
 
 if(MSVC)
-	target_sources(romisvr
+	target_sources(${PROJECT_NAME}
 		PRIVATE
 			server/io/win/iocp.cpp
 			server/io/win/iocpthread.cpp
 	)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC _ROMI_WINDOWS=1)
 else()
-	target_sources(romisvr
+	target_sources(${PROJECT_NAME}
 		PRIVATE
 			server/io/bsd/queuehost.cpp
 			server/io/bsd/queuethread.cpp
 	)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC _ROMI_WINDOWS=0)
 endif()
 
 target_include_directories(romisvr

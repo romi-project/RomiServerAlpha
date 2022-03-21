@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "std.hpp"
+#include "defines.hpp"
 
 class OutPacket;
 class RQueueContext;

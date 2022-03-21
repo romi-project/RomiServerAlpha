@@ -17,9 +17,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_subdirectory(srcs)
 
 add_subdirectory(plog)
-target_include_directories(romisvr
+add_subdirectory(libcds)
+
+target_include_directories(${PROJECT_NAME}
 	PUBLIC plog/include
+  PUBLIC libcds
 )
-target_link_libraries(romisvr PUBLIC plog)
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC plog
+  PUBLIC cds-s
+)
 
 # ${CMAKE_SOURCE_DIR}/

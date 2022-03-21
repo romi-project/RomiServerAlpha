@@ -1,3 +1,6 @@
 [submodule "plog"]
 	path = plog
 	url = git@github.com:SergiusTheBest/plog.git
+[submodule "libcds"]
+	path = libcds
+	url = git@github.com:khizmax/libcds.git

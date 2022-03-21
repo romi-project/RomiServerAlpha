@@ -17,7 +17,9 @@
 
 #pragma once
 
-#include "std.hpp"
+#include <atomic>
+#include <cds/intrusive/msqueue.h>
+#include "defines.hpp"
 #include "bsd/queuecontext.hpp"
 #include "isocketcallback.hpp"
 #include "utils/inpacket.hpp"
@@ -34,12 +36,13 @@ private:
     RomiRawSocket           _socket;
     const std::string       _remoteAddress;
     InPacket                _inPacket;
-    std::queue<OutPacket>   _writePackets;
-    bool                    _overlappedSend;
     AssembleMode            _assembleMode;
     RISocketPort*           _socketPort;
     RQueueContext           _context;
     std::atomic<bool>       _shouldClose;
+    std::atomic<bool>       _overlappedSend;
+
+    cds::intrusive::msqueue<OutPacket>  _writePackets;
 
 public:
     RSocketClient(RomiRawSocket socket, const std::string& remoteAddress, RISocketPort* socketPort);
@@ -53,7 +56,6 @@ public:
     const RQueueContext&  GetContext() const;
 
     void    SendPacket(const OutPacket& outPacket);
-    void    TriggerSocketQueue();
 
     virtual void OnConnect() = 0;
     virtual void OnSend();
@@ -66,9 +68,10 @@ public:
 protected:
 
 private:
-    void    AssemblePacket();
     static uint16_t    CalculateHash(const char* buffer, size_t len);
 
-    void    DoClose();
+    void    AssemblePacket();
+    void    TriggerEnableSend();
+    void    Terminate();
 
 };

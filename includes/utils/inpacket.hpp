@@ -9,6 +9,7 @@
 #pragma once
 
 #include "std.hpp"
+#include "defines.hpp"
 #include "error/runtimeexception.hpp"
 
 class InPacket

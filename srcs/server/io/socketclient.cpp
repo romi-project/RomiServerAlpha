@@ -16,7 +16,7 @@ RSocketClient::RSocketClient(RomiRawSocket socket, const std::string& remoteAddr
     , _assembleMode(AssembleMode::Header)
     , _context({socket, nullptr, this})
     , _socketPort(socketPort)
-    , _overlappedSend(_overlappedSend)
+    , _overlappedSend(false)
     , _shouldClose(false)
 {
     LOGD << "New RSocketClient-" << socket << " (" << remoteAddress << ")";
@@ -29,7 +29,7 @@ RSocketClient::RSocketClient(RSocketClient&& o)
     , _assembleMode(o._assembleMode)
     , _context({o._socket, nullptr, this})
     , _socketPort(o._socketPort)
-    , _overlappedSend(o._overlappedSend)
+    , _overlappedSend(o._overlappedSend.load())
     , _shouldClose(o._shouldClose.load())
 {
     LOGV << "Moved RSocketClient-" << _socket << " (" << _remoteAddress << ")";
@@ -143,17 +143,26 @@ uint16_t    RSocketClient::CalculateHash(const char* buffer, size_t len)
 
 void    RSocketClient::SendPacket(const OutPacket& outPacket)
 {
-    OutPacket oPacket;
+    OutPacket   oPacket;
 
     oPacket.Write<uint16_t>(CalculateHash(outPacket.GetBuffer(), outPacket.GetBufferSize()));
     oPacket.Write<uint32_t>(static_cast<uint32_t>(outPacket.GetBufferSize()));
     oPacket.Write(outPacket.GetBuffer(), 0, outPacket.GetBufferSize());
     _writePackets.emplace(std::move(oPacket));
-
+    TriggerEnableSend();
 }
 
-void    RSocketClient::Close()
+void    RSocketClient::TriggerEnableSend()
+{
+    bool    overlappedSendDesired = false;
+
+    if (_overlappedSend.compare_exchange_strong(overlappedSendDesired, true))
+        _socketPort->EnableSend(_context);
+}
+
+void    RSocketClient::Terminate()
 {
     shutdown(_socket, SHUT_RDWR);
-    close(socketfd);
+    close(_socket);
+    LOGD << "Terminated socket-" << _socket << " (" << _remoteAddress << ")";
 }
