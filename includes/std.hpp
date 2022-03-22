@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <queue>
+#include <thread>
 #include <unordered_set>
 #include <unordered_map>
 #include <type_traits>
@@ -40,10 +41,6 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-inline void Close(RomiRawSocket socket) { closesocket(socket); }
-inline int GetRomiLastError() { return GetLastError(); }
-inline int GetRomiLastSocketError() { return WSAGetLastError(); }
-
 #else
 
 #include <netinet/in.h>
@@ -54,9 +51,5 @@ inline int GetRomiLastSocketError() { return WSAGetLastError(); }
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <cerrno>
-
-inline void Close(RomiRawSocket socket) { close(socket); }
-inline int GetRomiLastError() { return errno; }
-inline int GetRomiLastSocketError() { return errno; }
 
 #endif

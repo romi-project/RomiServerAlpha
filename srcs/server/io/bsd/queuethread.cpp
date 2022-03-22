@@ -6,6 +6,7 @@
 // @ Since  :  2022-03-18 15:23:10
 //
 
+#include "std.hpp"
 #include "server/io/bsd/queuethread.hpp"
 #include "server/io/bsd/queuecontext.hpp"
 #include "server/io/isocketcallback.hpp"
@@ -17,6 +18,11 @@
 
 RQueueThread::RQueueThread(int num)
     : _num(num)
+    , _thread()
+    , _threadId()
+    , _eventfd()
+    , _isAlive(true)
+    , _acceptors()
 {
     LOGD << "Created RQueueThread-" << num << ".";
 }
@@ -27,35 +33,75 @@ RQueueThread::~RQueueThread()
     LOGD << "Deleted RQueueThread-" << _num << ".";
 }
 
-// kqueue에 accept되어온 소켓 등록
-void    RQueueThread::RegisterSocket(RomiRawSocket socketfd, RQueueContext& context)
+void    RQueueThread::Begin()
 {
-    SetEvent(socketfd, context, kevent_Read, false);
+    bool    expected = false;
+
+    if (!_isAlive.compare_exchange_strong(expected, true))
+        throw RRuntimeException("RQueueThread has already begun.");
+    _eventfd = kqueue();
+    if (_eventfd < 0)
+        throw RSocketException(GetRomiLastSocketError());
+    _thread = std::thread(&RQueueThread::Run, this);
+    _threadId = _thread.get_id();
+    LOGV << "RQueueThread-" << _num << " has begun.";
+}
+
+void    RQueueThread::End()
+{
+    bool    expected = true;
+
+    if (_isAlive.compare_exchange_strong(expected, false))
+        LOGV << "RQueueThread-" << _num << " has stopped.";
+    else
+        LOGV << "RQueueThread-" << _num << " was tried to stop, but already died.";
+}
+
+// kqueue에 accept되어온 소켓 등록
+void    RQueueThread::RegisterSocket(RomiRawSocket socketfd, const RQueueContext& context)
+{
+    SetSocketOpt(socketfd);
+    SetEvent(socketfd, context, RomiIOEvent_Read, RomiIOInterested_Add | RomiIOInterested_Enable);
+    SetEvent(socketfd, context, RomiIOEvent_Write | RomiIOEvent_Custom, RomiIOInterested_Add);
+}
+
+void    RQueueThread::UnregisterSocket(RomiRawSocket socketfd, const RQueueContext& context)
+{
+    SetEvent(socketfd, context, RomiIOEvent_Read | RomiIOEvent_Write | RomiIOEvent_Custom, RomiIOInterested_Remove);
 }
 
 // kqueue에 액셉터 등록
-void    RQueueThread::RegisterAcceptor(RomiRawSocket listenfd, RQueueContext& context)
+void    RQueueThread::RegisterAcceptor(RomiRawSocket listenfd, const RQueueContext& context)
 {
     if (_isAlive.load())
         throw RRuntimeException("Cannot register an acceptor since the RQueueThread is already begun.");
     _acceptors.emplace(listenfd);
-    SetEvent(listenfd, context, kevent_Read, false);
+    SetEvent(listenfd, context, RomiIOEvent_Read, RomiIOInterested_Add | RomiIOInterested_Enable);
     LOGD << "Registered AcceptorSocket [" << listenfd << "] to RQueueThread-" << _num << ".";
 }
 
-void    RQueueThread::SetEvent(RomiRawSocket socketfd, RQueueContext& context, int events, bool remove)
+void    RQueueThread::SetEvent(RomiRawSocket socketfd, const RQueueContext& context, int events, int flags)
 {
-    kevent64_s  ev[2];
+    kevent64_s  ev[3];
     int         eventNum = 0;
+    int         eventFlags = 0;
 
-    if (events & kevent_Read)
-        EV_SET64(&ev[eventNum++], socketfd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
-    else if (remove)
-        EV_SET64(&ev[eventNum++], socketfd, EVFILT_READ, EV_DELETE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
-    if (events & kevent_Write)
-        EV_SET64(&ev[eventNum++], socketfd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
-    else if (remove)
-        EV_SET64(&ev[eventNum++], socketfd, EVFILT_WRITE, EV_DELETE, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
+    if (flags & RomiIOInterested_Add)
+        eventFlags |= EV_ADD;
+    if (flags & RomiIOInterested_Remove)
+        eventFlags |= EV_DELETE;
+    if (flags & RomiIOInterested_Enable)
+        eventFlags |= EV_ENABLE;
+    if (flags & RomiIOInterested_Disable)
+        eventFlags |= EV_DISABLE;
+
+    if (events & RomiIOEvent_Read)
+         EV_SET64(&ev[eventNum++], socketfd, EVFILT_READ, eventFlags, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
+    if (events & RomiIOEvent_Write)
+         EV_SET64(&ev[eventNum++], socketfd, EVFILT_WRITE, eventFlags, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
+    if (events & RomiIOEvent_Custom)
+         EV_SET64(&ev[eventNum++], socketfd, EVFILT_USER, eventFlags, 0, 0, reinterpret_cast<uint64_t>(&context), 0, 0);
+
     int evregist = kevent64(_eventfd, ev, eventNum, nullptr, 0, 0, nullptr);
     if (evregist < 0)
         throw RSocketException(GetRomiLastSocketError());
@@ -86,7 +132,7 @@ static bool is_uncontinuable_accept_error(int err)
     }
 }
 
-void    RQueueThread::DoAccept(int socketfd, RQueueContext& context)
+void    RQueueThread::DoAccept(int socketfd, const RQueueContext& context)
 {
     sockaddr_in addr;
     socklen_t addr_size = sizeof(addr);
@@ -103,29 +149,6 @@ void    RQueueThread::DoAccept(int socketfd, RQueueContext& context)
     context.Acceptor->OnAccept(clientfd, addressString);
 }
 
-void    RQueueThread::DoRead(int socketfd, RQueueContext& context)
-{
-    char    buf[TCP_MTU];
-    ssize_t n = 0;
-
-    while (true)
-    {
-        n = read(socketfd, buf, sizeof(buf));
-        if (n < 0 && errno == EAGAIN) // non blocking mode (no data can be read for now)
-            return;
-        if (n < 0)
-        {
-            LOGD << "Socket error (" << ErrorUtils::GetString(errno) << ") from " << NetUtils::GetPeerName(socketfd);
-            break;
-        }
-        if (n == 0)
-            break;
-        context.Callback->OnReceive(buf, static_cast<size_t>(n));
-    }
-    LOGD << "Socket closed from " << NetUtils::GetPeerName(socketfd);
-    context.Callback->OnReceive(nullptr, 0);
-}
-
 THREAD_ROTUINE RQueueThread::Run(RomiVoidPtr selfPtr)
 {
     RQueueThread* $this = reinterpret_cast<RQueueThread*>(selfPtr);
@@ -138,7 +161,7 @@ THREAD_ROTUINE RQueueThread::Run(RomiVoidPtr selfPtr)
         for (int i = 0; i < numbers; i++)
         {
             kevent64_s& event = events[i];
-            RQueueContext& context = *reinterpret_cast<RQueueContext*>(event.udata);
+            const RQueueContext& context = *reinterpret_cast<const RQueueContext*>(event.udata);
             RomiRawSocket socketfd = context.Socket;
             int filter = event.filter;
 
@@ -152,34 +175,22 @@ THREAD_ROTUINE RQueueThread::Run(RomiVoidPtr selfPtr)
                     $this->DoAccept(socketfd, context);
 
                 else
-                    $this->DoRead(socketfd, context);
+                    context.Callback->OnEvent(RomiIOEvent_Read);
             }
 
             // write
             else if (filter == EVFILT_WRITE)
-            {
-                $this->DoSend(context);
-                $this->SetEvent(socketfd, context, kevent_Write, true);
-            }
-        }
-        NEXT_LOOP:
-        continue;
-    }
+                context.Callback->OnEvent(RomiIOEvent_Write);
 
+            // close
+            else if (filter == EVFILT_USER)
+                context.Callback->OnEvent(RomiIOEvent_Custom);
+        }
+    }
     return THREAD_ROUTINE_RETURN;
 }
 
-void    RQueueThread::DoSend(RQueueContext& context)
+void    RQueueThread::TriggerEvent(const RQueueContext& context, int type, int flags)
 {
-    context.Callback->OnSend();
-}
-
-ssize_t RQueueThread::Write(RomiRawSocket socket, const char* buf, size_t len)
-{
-
-}
-
-void    RQueueThread::EnableSend(RQueueContext& context)
-{
-    SetEvent(context.Socket, context, kevent_Write, false);
+    SetEvent(context.Socket, context, type, flags);
 }

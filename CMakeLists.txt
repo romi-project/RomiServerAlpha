@@ -1,5 +1,12 @@
+# The Romi Project
+#
+# @ File   :  CMakeLists.txt
+# @ Author :  Tensiya(T2SU)
+# @ Email  :  tsi@romi-project.net
+#
+
 cmake_minimum_required(VERSION 3.19)
-project(romisvr VERSION 1.0)
+project(RomiServerAlpha VERSION 1.0)
 
 if(MSVC)
   string (REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT}")
@@ -17,15 +24,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_subdirectory(srcs)
 
 add_subdirectory(plog)
-add_subdirectory(libcds)
 
 target_include_directories(${PROJECT_NAME}
 	PUBLIC plog/include
-  PUBLIC libcds
 )
 target_link_libraries(${PROJECT_NAME}
   PUBLIC plog
-  PUBLIC cds-s
 )
-
-# ${CMAKE_SOURCE_DIR}/

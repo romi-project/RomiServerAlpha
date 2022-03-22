@@ -29,6 +29,6 @@ else()
 	target_compile_definitions(${PROJECT_NAME} PUBLIC _ROMI_WINDOWS=0)
 endif()
 
-target_include_directories(romisvr
+target_include_directories(${PROJECT_NAME}
 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
 )

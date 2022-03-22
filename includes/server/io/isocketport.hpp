@@ -11,12 +11,12 @@
 #include "defines.hpp"
 
 class OutPacket;
-class RQueueContext;
+struct RQueueContext;
 
 class RISocketPort
 {
 public:
-    virtual void    RegisterSocket(RomiRawSocket socket, RQueueContext& context) = 0;
-    virtual ssize_t Write(RomiRawSocket socket, const char* buf, size_t len) = 0;
-    virtual void    EnableSend(RQueueContext& context) = 0;
+    virtual void    RegisterSocket(RomiRawSocket socketfd, const RQueueContext& context) = 0;
+    virtual void    UnregisterSocket(RomiRawSocket socketfd, const RQueueContext& context) = 0;
+    virtual void    TriggerEvent(const RQueueContext& context, int type, int flags) = 0;
 };

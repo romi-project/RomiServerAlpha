@@ -59,9 +59,14 @@ size_t  InPacket::GetVirtualSize() const
     return _virtualSize;
 }
 
-size_t  InPacket::GetBufferSize() const
+size_t  InPacket::GetRawBufferSize() const
 {
     return _buffer.size();
+}
+
+const char* InPacket::GetRawBuffer() const
+{
+    return _buffer.data();
 }
 
 void    InPacket::PullUsedPacket(size_t size)

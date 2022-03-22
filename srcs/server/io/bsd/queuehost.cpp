@@ -6,28 +6,6 @@
 // @ Since  :  2022-03-18 15:23:05
 //
 
-#include "queuehost.hpp"
-
-RQueueHost::RQueueHost()
-{
-}
-
-RQueueHost::~RQueueHost()
-{
-}
-
-RQueueHost::RQueueHost(const RQueueHost& o)
-{
-}
-
-RQueueHost::RQueueHost(RQueueHost&& o)
-{
-}
-
-RQueueHost& RQueueHost::operator= (const RQueueHost& o)
-{
-}
-
-RQueueHost& RQueueHost::operator= (RQueueHost&& o)
-{
-}
+#include "std.hpp"
+#include "defines.hpp"
+#include "server/io/bsd/queuehost.hpp"

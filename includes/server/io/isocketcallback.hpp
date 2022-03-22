@@ -15,11 +15,8 @@
 
 #pragma once
 
-#include "defines.hpp"
-
 class RISocketCallback
 {
 public:
-    virtual void    OnSend() = 0;
-    virtual void    OnReceive(const char* buffer, size_t len) = 0;
+    virtual void    OnEvent(int event) = 0;
 };

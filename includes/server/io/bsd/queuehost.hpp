@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "defines.hpp"
-#include "queuethread.hpp"
+#include "../../../defines.hpp"
 #include "../socketacceptor.hpp"
+#include "queuethread.hpp"
 
 class RQueueHost
 {
@@ -19,10 +19,10 @@ private:
     const std::string name;
 
 public:
-    RQueueHost() = delete;
     RQueueHost& operator= (const RQueueHost&) = delete;
     RQueueHost& operator= (RQueueHost&&) = delete;
 
+    RQueueHost() = default;
     virtual ~RQueueHost() = default;
     RQueueHost(const RQueueHost&) = default;
     RQueueHost(RQueueHost&&) = default;
@@ -32,7 +32,8 @@ public:
     template<typename T>
     void    RegisterAcceptor(RSocketAcceptor<T> acceptor)
     {
-
+        (void)acceptor;
+        // get thread -> register acceptor
     }
 
 protected:

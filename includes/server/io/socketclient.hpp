@@ -18,7 +18,8 @@
 #pragma once
 
 #include <atomic>
-#include <cds/intrusive/msqueue.h>
+#include <queue>
+#include <mutex>
 #include "defines.hpp"
 #include "bsd/queuecontext.hpp"
 #include "isocketcallback.hpp"
@@ -30,22 +31,26 @@ class RISocketPort;
 class RSocketClient : public RISocketCallback
 {
 private:
-    enum class AssembleMode { Header, Content };
+    enum class ComposeMode { Header, Content };
     const size_t            HEADER_SIZE = 6;
 
-    RomiRawSocket           _socket;
+    const RomiRawSocket     _socket;
+    const uint32_t          _socketId;
     const std::string       _remoteAddress;
-    InPacket                _inPacket;
-    AssembleMode            _assembleMode;
-    RISocketPort*           _socketPort;
-    RQueueContext           _context;
-    std::atomic<bool>       _shouldClose;
-    std::atomic<bool>       _overlappedSend;
+    RISocketPort* const     _socketPort;
 
-    cds::intrusive::msqueue<OutPacket>  _writePackets;
+    InPacket                _inPacket;
+    ComposeMode             _composeMode;
+    RQueueContext           _context;
+    std::atomic<bool>       _triggeredClose;
+    std::atomic<bool>       _triggeredSend;
+
+    std::mutex              _sendMutex;
+    std::vector<char>       _writeBuffer;
+    std::queue<OutPacket>   _writePackets;
 
 public:
-    RSocketClient(RomiRawSocket socket, const std::string& remoteAddress, RISocketPort* socketPort);
+    RSocketClient(RomiRawSocket socket, uint32_t socketId, const std::string& remoteAddress, RISocketPort* socketPort);
     virtual ~RSocketClient();
 
     RSocketClient(RSocketClient&& o);
@@ -53,25 +58,26 @@ public:
     RSocketClient& operator= (const RSocketClient&) = delete;
     RSocketClient& operator= (RSocketClient&&) = delete;
 
-    const RQueueContext&  GetContext() const;
+    uint32_t    GetSocketId() const;
+    const RQueueContext&    GetContext() const;
 
     void    SendPacket(const OutPacket& outPacket);
 
     virtual void OnConnect() = 0;
-    virtual void OnSend();
-    virtual void OnReceive(const char* buffer, size_t len);
-    virtual void OnClose();
-
+    virtual void OnEvent(int event);
     virtual void ProcessPacket(const InPacket& inPacket) = 0;
 
-
 protected:
+    virtual void OnSend();
+    virtual void OnReceive();
+    virtual void OnClose();
 
 private:
     static uint16_t    CalculateHash(const char* buffer, size_t len);
 
-    void    AssemblePacket();
-    void    TriggerEnableSend();
+    void    ComposePacket();
+    void    TriggerSend(bool newState);
+    void    TriggerClose();
     void    Terminate();
 
 };

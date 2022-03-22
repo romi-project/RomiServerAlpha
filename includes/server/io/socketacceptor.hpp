@@ -25,23 +25,30 @@
 #include <type_traits>
 #include <atomic>
 #include <memory>
-#include "defines.hpp"
+#include <unordered_map>
+#include "../../defines.hpp"
+#include "../../error/socketexception.hpp"
+#include "../../error/invalidoperationexception.hpp"
+#include "bsd/queuecontext.hpp"
 #include "isocketacceptorcallback.hpp"
 #include "isocketport.hpp"
-#include "bsd/queuecontext.hpp"
-#include "error/socketexception.hpp"
-#include "error/invalidoperationexception.hpp"
 
 class RSocketClient;
 
 template<typename T, typename std::enable_if_t<std::is_convertible<T, RSocketClient>::value, RSocketClient*>* = nullptr>
 class RSocketAcceptor : public RISocketAcceptorCallback
 {
+
 private:
+    typedef std::unordered_map<uint32_t, T> SocketMap;
+
     std::string         _host;
     std::string         _port;
     RomiRawSocket       _listenSocket;
     std::atomic<bool>   _isAlive;
+    SocketMap           _socketMap;
+    uint32_t            _socketIdCounter;
+
 
 public:
     RSocketAcceptor() = delete;
@@ -55,6 +62,8 @@ public:
         , _host(host)
         , _port(port)
         , _isAlive(false)
+        , _socketMap()
+        , _socketIdCounter(0)
     {
     }
 
@@ -68,9 +77,9 @@ public:
 
     virtual void    OnAccept(RomiRawSocket socket, const std::string& remoteAddress, RISocketPort& socketPort)
     {
-        SetSocketOpt(socket);
-        std::shared_ptr<T> newSocket(T(socket, remoteAddress));
-        socketPort.RegisterSocket(socket, context);
+        T client(socket, ++_socketIdCounter, remoteAddress, &socketPort);
+        _socketMap[client.GetSocketId()] = client;
+        socketPort.RegisterSocket(socket, client.GetContext());
     }
 
     void    Shutdown()
